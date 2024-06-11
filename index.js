@@ -42,6 +42,7 @@ server.use(express.json());
 server.get("/newchat", (req, res) => {
   let body = req.body;
   console.log("Notification request received GET");
+  res.send("API UP")
   return;
   const message = {
     notification: {
