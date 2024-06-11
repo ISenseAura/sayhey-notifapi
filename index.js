@@ -77,6 +77,7 @@ server.get("/newchat", (req, res) => {
 
 server.post("/newchat", (req, res) => {
   let body = req.body;
+  console.log(body)
   console.log("Notification request received");
   const message = {
     notification: {
