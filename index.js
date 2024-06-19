@@ -3,54 +3,92 @@ const { initializeApp } = require("firebase-admin/app");
 const { getMessaging } = require("firebase-admin/messaging");
 
 const https = require("https");
-
 const express = require("express");
-
 const server = express();
+var cors = require("cors");
+const screenName = require("./screens");
+const Config = require("./config");
 
-var cors = require('cors');
+var exec = require("child_process").exec;
+
 server.use(cors());
 
-server.use(function(req, res, next) {
+server.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  res.header("Access-Control-Allow-Headers", "x-access-token, Origin, X-Requested-With, Content-Type, Accept");
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "x-access-token, Origin, X-Requested-With, Content-Type, Accept"
+  );
   next();
 });
 
 const app = initializeApp({
-  credential: credential.cert({
-    type: "service_account",
-    project_id: "kmr-and-friends",
-    private_key_id: "b991f4b20393a5d727c9efbf83920f0078626a38",
-    private_key:
-      "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDmcFusaXi4bW/9\nNrxR+ofsgM+BdbClz1LvosutlXv9gs524xmflK5w33bXrW2rlT+KSgkT5lxTjIqQ\n0PcFswOoOGc9K5jk+OW+5zzVCysDEwjHqEnIEWMrV0uCjbycMuSDuOMr6w3IfsAM\nkkSAHqEF018aEt2pOtvZNCspojFxu77zjkf7msif2KpzOGkVWQFhPrk/CgqknLYT\nN99leJBz9QF8LICs/WL5S2GZi/kIdSZWTgvXtRDN3lLJGHEp1/6TfdhMt50ZjkBl\nEG3ZGqjJkVXe+wcfdu6RDgix1WuaaOm+Hg59KClw7XqNinu7XP6i04E1Xnip/DAR\nlnxxHMPRAgMBAAECggEAS3DqWkoXVw2g9b2HLrF98VwEUyZEBCyZQtHBq5z+QDMk\nQ8C6oUdsSpCmGBrzhhJxAGWXjjfC7ylaLenzjR6bqmV4ywpsXj3r/TE39alX1gRT\nwgWizgh/Nm+4TU/4uQxiSotrd/PWidaRKixyl50vazhVcLRPdDlMQ1I0dUdft5M3\nxwa/UhMnhJ7qBjeo8KYLpjJDHdKT0xz0H8Tik0xS9HODTCUCXf0Zqv0WXx00Dnl8\ndNh4+ejNdh76bAjml+iDxO9W7jGHCt4iicC7eulOaqVQSUwSQTIUTpMJ4ic9wp4Y\nSX5i2EWIDeastWaSf2+WOcGyw22Inocz1AWI/ip9jwKBgQD/bM4nmfG6CL9RjSYD\nR8kb0gOJKtAB2YF05yBHyzqUQlcA/3yBnNhMD7Pt6eFCujNTXIF74PVVxMKeE4Uf\n95Lc5Vdh3Ot5vomp+0aeg5EVxgN/5bzenXVgs+Gdz4ElHGIs3GSIkWPzC5ZwO9Ir\nbpr7yGmEGizzEaHyGFuLK3WZFwKBgQDm9SdqMusZAl8cKjkvhzBzo5NlGjPAJSbH\nGkQhB4HzbT16SKA9jJxKf3x1SeIAYBm17hzjdQfLId+Fo4BHVk1qfnCt44Xw9p9p\n/7l18kAjCqsllJU8JnA9AE1cgpaFYsUoEaDYKgJuqRRPpbWqgleMgsC/5rVcPT0I\n+fKhYZRLVwKBgErpiWj58HhkWmA7qntp0WTUam8PXGQ+e4ZixwfnZe3XqxbC16xX\n6OQd8uKDJqrgW29GgT9o0etuwrmD9hZTEQKyTLeKCJHzPQLajHKvGZ0uLxaStZsA\nyU0sVK5pDnJo6a5IkT+wjITa0CtokBJm5ROVSsUQvEAp2rpbRHYDsADPAoGBALax\nG/GMv51z28pKuBuZg8EllpV2CZOnj6oVY+kAqFHniqbtRhwJ2yOu/sNEo0qKuivI\nY/+k9no/nDF5KSLE6M4hoH5cqPn4DBfsGkdrTkKp0MIUa4w+F7CZSZixD+IJRE2y\nzBnR+USR6KgsO6zaF+jlERV7qOCC7IHqPXxc1NJXAoGBAPcVLg7pFVAOr/7jfYgc\nsqBPKN1RErrQTfwS+yfKcfWsHfKLoOTTwPqO40G6IQEhf7D1ZtJyfbABbh4imh5J\nHfm1uJ3EvDNGSgfrU9epgvQ8d4bBPpheiaVU7LQy10TSm7YpQoTVo4YErOgzwlNh\nbDh93UzOnZi+ZTJ64/mqHx4N\n-----END PRIVATE KEY-----\n",
-    client_email:
-      "firebase-adminsdk-v9dgz@kmr-and-friends.iam.gserviceaccount.com",
-    client_id: "118116752206704505590",
-    auth_uri: "https://accounts.google.com/o/oauth2/auth",
-    token_uri: "https://oauth2.googleapis.com/token",
-    auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-    client_x509_cert_url:
-      "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-v9dgz%40kmr-and-friends.iam.gserviceaccount.com",
-    universe_domain: "googleapis.com",
-  }),
+  credential: credential.cert(Config.firebaseAdminConfig),
 });
 
-
 server.use(express.json());
+
+server.get("/gitpull", (req, res) => {
+  var result = function (command, cb) {
+    var child = exec(command, function (err, stdout, stderr) {
+      if (err != null) {
+        return cb(new Error(err), null);
+      } else if (typeof stderr != "string") {
+        return cb(new Error(stderr), null);
+      }
+      {
+        return cb(null, stdout);
+      }
+    });
+    return child;
+  };
+
+  try {
+   let re = []
+    let gitpull = result("git pull", (err, s) => {
+      if (!err) {
+        console.log(re)
+        re.push("[SUCCESS] : " + s);
+      } else {
+        re.push("[ERROR] : " + JSON.stringify(err));
+      }
+    });
+    let pm2restart = result("pm2 restart index", (err, s) => {
+      if (!err) {
+        re.push("[SUCCESS] : " + s);
+      } else {
+        re.push("[ERROR] : " + JSON.stringify(err));
+      }
+    });
+    res.send(re.join('<br>'))
+  } catch (e) {
+    console.log(e);
+    res.status(400).send(e);
+  }
+});
+
 server.get("/newchat", (req, res) => {
   let body = req.body;
   console.log("Notification request received GET");
-  res.send("API UP")
-  return;
+  res.send("API UP");
+
+  let tokens = [
+    "eK8YZztUS4yL6tn5ZR10r6:APA91bHEUwgEmCefUEqFf4y7tz0SJPl-ZLiEqm45V8ZUgCySCa1p4E5ttxJdIPvOlCyQTEMwpvsO3NSiQQmFIPvCpdf5UrzI767_Wf9AhOPRsrKf9ufDLE3lLCX6r3Tqij_8-XOTRUB6",
+    "cs0Z5KaOT7yDE9t1ncxf0H:APA91bHch7rnO1xpvQ8A2qTzavvJsnnYxiGDNn1f6IbYH3V_2Jv-spa_hEDrw2HJbXfRQQo2_CQmV8ui_HwJkUmqZ6pu9Oe_ZW1T9k8_aJw-HLHA9yJ8-gnqA6k9XYgv3ecmIfMMm6kD",
+    "c1pTPyvfSmGLa4I2ejIfYS:APA91bFqICSAoziEHElfnQ1VTZp8g42sm9m4TIlhVlshpGGFvF9DV6anyzVSVyRkyvMvfqDBj2P4I-yCnPj2MSBUcgKAoNR-2CDZ1jbLyAkBQQLny0PwPg_szam2RE3i6ZiKMF5O15FA",
+  ];
+
   const message = {
     notification: {
-      title: `New Chat Request from ${body.from}!`,
-      body: ``,
+      title: `New Chat Request!`,
+      body: `Rizaxe wants to have a chat!`,
       imageUrl: "https://my-cdn.com/app-logo.png",
     },
-    token: `${body.token}`,
+    token: `fMorJMcgQgKfrRER5ghsW0:APA91bG90NskS_0ODChj4v4WEk1vXo1jVaN61MtZ-XQDZWJ3wY1hgdvRCqThzfz9lIMaqQCwcCA0a64Z4XKjB1iPW4H_sZllybXGhHlR1fyIgq4B4T4yOYlNqeApR9YUky0FCDGDjheB`,
   };
 
   try {
@@ -75,17 +113,119 @@ server.get("/newchat", (req, res) => {
   }
 });
 
-server.post("/newchat", (req, res) => {
-  let body = req.body;
-  console.log(body)
-  console.log("Notification request received");
+/*
+@REQ BODY
+{
+type : c = CUSTOM | cr = CHAT REQUEST | cra = REQUEST ACCEPT | crd = REQUEST DECLINE  | msg = NEW MESSAGE | exp = CHAT EXPIRES,
+tokens : Array,
+from : Listener | User,
+data? : String
+
+title? : String // for custom
+body? : String // for custom
+}
+*/
+
+server.post("/chatnotification", (req, res) => {
+  console.log(" \n Notification request received \n");
+
+  console.log(req.body);
+
+  let title,
+    body,
+    screen = null;
+
+  switch (req.body.type) {
+    case "c":
+      {
+        title = req.body.title;
+        body = `${req.body.body}`;
+        screen = "Notification";
+      }
+      break;
+
+    case "cr":
+      {
+        title = "New Chat Request";
+        body = `${req.body.from.name} wants to have a chat!`;
+      }
+      break;
+
+    case "cra":
+      {
+        title = "Chat request accepted";
+        body = `${req.body.from.name} accepted your chat request!`;
+        screen = screenName.ListenerScreen;
+      }
+      break;
+
+    case "crd":
+      {
+        title = "Chat request declined";
+        body = `${req.body.from.name} declined your chat request!`;
+      }
+      break;
+
+    case "msg":
+      {
+        title = `${req.body.from.name}`;
+        body = `${req.body.data}`;
+      }
+      break;
+  }
+
+  req.body.tokens.forEach((token) => {
+    const message = {
+      notification: {
+        title: title,
+        body: body,
+        imageUrl: "https://my-cdn.com/app-logo.png",
+        screen: screen,
+      },
+      token: `${token}`,
+    };
+
+    try {
+      getMessaging()
+        .send(message)
+        .then((response) => {
+          if (response.failureCount > 0) {
+            const failedTokens = [];
+            response.responses.forEach((resp, idx) => {
+              if (!resp.success) {
+                failedTokens.push(registrationTokens[idx]);
+              }
+            });
+            console.log("List of tokens that caused failures: " + failedTokens);
+          }
+        })
+        .catch((e) => {
+          res.status(400).send(e);
+        });
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
+  res.status(200);
+});
+
+process.on("uncaughtException", crashLog);
+
+function crashLog(e) {
+  let tokens = [
+    "eK8YZztUS4yL6tn5ZR10r6:APA91bHEUwgEmCefUEqFf4y7tz0SJPl-ZLiEqm45V8ZUgCySCa1p4E5ttxJdIPvOlCyQTEMwpvsO3NSiQQmFIPvCpdf5UrzI767_Wf9AhOPRsrKf9ufDLE3lLCX6r3Tqij_8-XOTRUB6",
+    "cs0Z5KaOT7yDE9t1ncxf0H:APA91bHch7rnO1xpvQ8A2qTzavvJsnnYxiGDNn1f6IbYH3V_2Jv-spa_hEDrw2HJbXfRQQo2_CQmV8ui_HwJkUmqZ6pu9Oe_ZW1T9k8_aJw-HLHA9yJ8-gnqA6k9XYgv3ecmIfMMm6kD",
+    "c1pTPyvfSmGLa4I2ejIfYS:APA91bFqICSAoziEHElfnQ1VTZp8g42sm9m4TIlhVlshpGGFvF9DV6anyzVSVyRkyvMvfqDBj2P4I-yCnPj2MSBUcgKAoNR-2CDZ1jbLyAkBQQLny0PwPg_szam2RE3i6ZiKMF5O15FA",
+  ];
+
   const message = {
     notification: {
-      title: `New Chat Request from ${body.from}!`,
-      body: ``,
+      title: `New Chat Request!`,
+      body: `Rizaxe wants to have a chat!`,
       imageUrl: "https://my-cdn.com/app-logo.png",
     },
-    token: `${body.token}`,
+    token: `fMorJMcgQgKfrRER5ghsW0:APA91bG90NskS_0ODChj4v4WEk1vXo1jVaN61MtZ-XQDZWJ3wY1hgdvRCqThzfz9lIMaqQCwcCA0a64Z4XKjB1iPW4H_sZllybXGhHlR1fyIgq4B4T4yOYlNqeApR9YUky0FCDGDjheB`,
   };
 
   try {
@@ -108,7 +248,7 @@ server.post("/newchat", (req, res) => {
   } catch (e) {
     console.log(e);
   }
-  res.status(200)
-});
+}
 
 server.listen(7070);
+console.log("Listening on 7070");
