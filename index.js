@@ -32,7 +32,8 @@ const app = initializeApp({
 
 server.use(express.json());
 
-server.get("/gitpull", (req, res) => {
+server.post("/gitpull", (req, res) => {
+  if(req.body.pass != "mayur") return res.send("Access Denied")
   var result = function (command, cb) {
     var child = exec(command, function (err, stdout, stderr) {
       if (err != null) {
