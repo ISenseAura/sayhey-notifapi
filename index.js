@@ -180,9 +180,9 @@ server.post("/chatnotification", (req, res) => {
         title: title,
         body: body,
         imageUrl: "https://my-cdn.com/app-logo.png",
-        screen: screen,
       },
       token: `${token}`,
+      data : { screen : screen}
     };
 
     try {
@@ -210,7 +210,7 @@ server.post("/chatnotification", (req, res) => {
   res.status(200);
 });
 
-process.on("uncaughtException", crashLog);
+//process.on("uncaughtException", crashLog);
 
 function crashLog(e) {
   let tokens = [
@@ -250,5 +250,9 @@ function crashLog(e) {
   }
 }
 
-server.listen(7070);
-console.log("Listening on 7070");
+let port = 7070;
+server.listen(port,(err) => {
+  if(err) throw new Error(err)
+    console.log("Listening on 7070");
+
+});
