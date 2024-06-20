@@ -133,7 +133,7 @@ server.post("/chatnotification", (req, res) => {
 
   let title,
     body,
-    screen = null;
+    screen = 'null';
 
   switch (req.body.type) {
     case "c":
