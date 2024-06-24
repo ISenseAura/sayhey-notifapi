@@ -201,14 +201,15 @@ server.post("/chatnotification", (req, res) => {
           }
         })
         .catch((e) => {
-          res.status(400).send(e);
+          console.log(e)
+          res.send(e);
         });
     } catch (e) {
       console.log(e);
     }
   });
 
-  res.status(200);
+  res.send("Success");
 });
 
 //process.on("uncaughtException", crashLog);
