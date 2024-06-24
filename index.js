@@ -174,6 +174,7 @@ server.post("/chatnotification", (req, res) => {
       }
       break;
   }
+  let logs = []
 
   req.body.tokens.forEach((token) => {
     const message = {
@@ -185,6 +186,7 @@ server.post("/chatnotification", (req, res) => {
       token: `${token}`,
       data : { screen : screen}
     };
+
 
     try {
       getMessaging()
@@ -198,18 +200,20 @@ server.post("/chatnotification", (req, res) => {
               }
             });
             console.log("List of tokens that caused failures: " + failedTokens);
+            logs.push(`[SUCCESS] :  (${token})`)
+
           }
         })
         .catch((e) => {
           console.log(e)
-          res.send(e);
+         logs.push(`[ERROR] : ${e.message}  (${token})`)
         });
     } catch (e) {
-      console.log(e);
+      logs.push(`[ERROR] : ${e.message}  (${token})`)
     }
   });
 
-  res.send("Success");
+  res.send(logs.join("\n"));
 });
 
 //process.on("uncaughtException", crashLog);
