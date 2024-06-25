@@ -176,6 +176,46 @@ server.post("/chatnotification", (req, res) => {
   }
   let logs = []
 
+  if(typeof req.body.tokens == typeof "a") {
+    let token = req.body.tokens
+    const message = {
+      notification: {
+        title: title,
+        body: body,
+        imageUrl: "https://my-cdn.com/app-logo.png",
+      },
+      token: `${token}`,
+      data : { screen : screen}
+    };
+
+
+    try {
+      getMessaging()
+        .send(message)
+        .then((response) => {
+          if (response.failureCount > 0) {
+            const failedTokens = [];
+            response.responses.forEach((resp, idx) => {
+              if (!resp.success) {
+                failedTokens.push(registrationTokens[idx]);
+              }
+            });
+            console.log("List of tokens that caused failures: " + failedTokens);
+            logs.push(`[SUCCESS] :  (${token})`)
+
+          }
+        })
+        .catch((e) => {
+          console.log(e)
+         logs.push(`[ERROR] : ${e.message}  (${token})`)
+        });
+    } catch (e) {
+      logs.push(`[ERROR] : ${e.message}  (${token})`)
+    }
+
+
+  }
+  else {
   req.body.tokens.forEach((token) => {
     const message = {
       notification: {
@@ -212,6 +252,7 @@ server.post("/chatnotification", (req, res) => {
       logs.push(`[ERROR] : ${e.message}  (${token})`)
     }
   });
+}
 
   res.send(logs.join("\n"));
 });
