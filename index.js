@@ -1,6 +1,8 @@
 const { credential } = require("firebase-admin");
 const { initializeApp } = require("firebase-admin/app");
 const { getMessaging } = require("firebase-admin/messaging");
+const { uniqueNamesGenerator, adjectives, colors, animals, countries,names, starWars } = require('unique-names-generator');
+
 
 const https = require("https");
 const express = require("express");
@@ -26,8 +28,25 @@ server.use(function (req, res, next) {
   next();
 });
 
+
+for(let i = 0;i < 10; i++) {
+const randomName = uniqueNamesGenerator({ dictionaries: [adjectives, colors, names ] }); // big_red_donkey
+    
+const shortName = uniqueNamesGenerator({
+  dictionaries: [ colors, names, colors, countries, starWars, ], // colors can be omitted here as not used
+  length: 2
+});
+
+console.log(shortName.replace("_"," "))
+}
+
 const app = initializeApp({
   credential: credential.cert(Config.firebaseAdminConfig),
+});
+
+
+server.get("/",(req,res) => {
+  res.send("<h4> Notification API Up!")
 });
 
 server.use(express.json());
@@ -73,42 +92,16 @@ server.post("/gitpull", (req, res) => {
 });
 
 server.get("/newchat", (req, res) => {
-  let body = req.body;
-  console.log("Notification request received GET");
-  res.send("API UP");
-
-  let tokens = [
-    "eK8YZztUS4yL6tn5ZR10r6:APA91bHEUwgEmCefUEqFf4y7tz0SJPl-ZLiEqm45V8ZUgCySCa1p4E5ttxJdIPvOlCyQTEMwpvsO3NSiQQmFIPvCpdf5UrzI767_Wf9AhOPRsrKf9ufDLE3lLCX6r3Tqij_8-XOTRUB6",
-    "cs0Z5KaOT7yDE9t1ncxf0H:APA91bHch7rnO1xpvQ8A2qTzavvJsnnYxiGDNn1f6IbYH3V_2Jv-spa_hEDrw2HJbXfRQQo2_CQmV8ui_HwJkUmqZ6pu9Oe_ZW1T9k8_aJw-HLHA9yJ8-gnqA6k9XYgv3ecmIfMMm6kD",
-    "c1pTPyvfSmGLa4I2ejIfYS:APA91bFqICSAoziEHElfnQ1VTZp8g42sm9m4TIlhVlshpGGFvF9DV6anyzVSVyRkyvMvfqDBj2P4I-yCnPj2MSBUcgKAoNR-2CDZ1jbLyAkBQQLny0PwPg_szam2RE3i6ZiKMF5O15FA",
-  ];
-
-  const message = {
-    notification: {
-      title: `New Chat Request!`,
-      body: `Rizaxe wants to have a chat!`,
-      imageUrl: "https://my-cdn.com/app-logo.png",
-    },
-    token: `fMorJMcgQgKfrRER5ghsW0:APA91bG90NskS_0ODChj4v4WEk1vXo1jVaN61MtZ-XQDZWJ3wY1hgdvRCqThzfz9lIMaqQCwcCA0a64Z4XKjB1iPW4H_sZllybXGhHlR1fyIgq4B4T4yOYlNqeApR9YUky0FCDGDjheB`,
-  };
+  
 
   try {
-    getMessaging()
-      .send(message)
-      .then((response) => {
-        if (response.failureCount > 0) {
-          const failedTokens = [];
-          response.responses.forEach((resp, idx) => {
-            if (!resp.success) {
-              failedTokens.push(registrationTokens[idx]);
-            }
-          });
-          console.log("List of tokens that caused failures: " + failedTokens);
-        }
-      })
-      .catch((e) => {
-        console.log(e);
-      });
+
+    const randomName = uniqueNamesGenerator({ dictionaries: [adjectives, colors, animals] }); // big_red_donkey
+    
+    const shortName = uniqueNamesGenerator({
+      dictionaries: [adjectives, animals, colors], // colors can be omitted here as not used
+      length: 2
+    });
   } catch (e) {
     console.log(e);
   }
