@@ -28,18 +28,6 @@ server.use(function (req, res, next) {
   next();
 });
 
-
-for(let i = 0;i < 10; i++) {
-const randomName = uniqueNamesGenerator({ dictionaries: [adjectives, colors, names ] }); // big_red_donkey
-    
-const shortName = uniqueNamesGenerator({
-  dictionaries: [ colors, names, colors, countries, starWars, ], // colors can be omitted here as not used
-  length: 2
-});
-
-console.log(shortName.replace("_"," "))
-}
-
 const app = initializeApp({
   credential: credential.cert(Config.firebaseAdminConfig),
 });
