@@ -1,8 +1,15 @@
 const { credential } = require("firebase-admin");
 const { initializeApp } = require("firebase-admin/app");
 const { getMessaging } = require("firebase-admin/messaging");
-const { uniqueNamesGenerator, adjectives, colors, animals, countries,names, starWars } = require('unique-names-generator');
-
+const {
+  uniqueNamesGenerator,
+  adjectives,
+  colors,
+  animals,
+  countries,
+  names,
+  starWars,
+} = require("unique-names-generator");
 
 const https = require("https");
 const express = require("express");
@@ -32,15 +39,14 @@ const app = initializeApp({
   credential: credential.cert(Config.firebaseAdminConfig),
 });
 
-
-server.get("/",(req,res) => {
-  res.send("<h4> Notification API Up!")
+server.get("/", (req, res) => {
+  res.send("<h4> Notification API Up!");
 });
 
 server.use(express.json());
 
 server.post("/gitpull", (req, res) => {
-  if(req.body.pass != "mayur") return res.send("Access Denied")
+  if (req.body.pass != "mayur") return res.send("Access Denied");
   var result = function (command, cb) {
     var child = exec(command, function (err, stdout, stderr) {
       if (err != null) {
@@ -56,10 +62,10 @@ server.post("/gitpull", (req, res) => {
   };
 
   try {
-   let re = []
+    let re = [];
     let gitpull = result("git pull", (err, s) => {
       if (!err) {
-        console.log(re)
+        console.log(re);
         re.push("[SUCCESS] : " + s);
       } else {
         re.push("[ERROR] : " + JSON.stringify(err));
@@ -72,7 +78,7 @@ server.post("/gitpull", (req, res) => {
         re.push("[ERROR] : " + JSON.stringify(err));
       }
     });
-    res.send(re.join('<br>'))
+    res.send(re.join("<br>"));
   } catch (e) {
     console.log(e);
     res.status(400).send(e);
@@ -80,15 +86,14 @@ server.post("/gitpull", (req, res) => {
 });
 
 server.get("/newchat", (req, res) => {
-  
-
   try {
+    const randomName = uniqueNamesGenerator({
+      dictionaries: [adjectives, colors, animals],
+    }); // big_red_donkey
 
-    const randomName = uniqueNamesGenerator({ dictionaries: [adjectives, colors, animals] }); // big_red_donkey
-    
     const shortName = uniqueNamesGenerator({
       dictionaries: [adjectives, animals, colors], // colors can be omitted here as not used
-      length: 2
+      length: 2,
     });
   } catch (e) {
     console.log(e);
@@ -115,7 +120,7 @@ server.post("/chatnotification", (req, res) => {
 
   let title,
     body,
-    screen = 'null';
+    screen = "null";
 
   switch (req.body.type) {
     case "c":
@@ -136,7 +141,15 @@ server.post("/chatnotification", (req, res) => {
     case "cra":
       {
         title = "Chat request accepted";
-        body = `${req.body.from.name} accepted your chat request!`;
+        body = `${req.body.from.name} accepted your chat request and waiting for you to join!`;
+        screen = screenName.ListenerScreen;
+      }
+      break;
+
+    case "crc":
+      {
+        title = "Chat request cancelled";
+        body = `${req.body.from.name} cancelled the chat request!`;
         screen = screenName.ListenerScreen;
       }
       break;
@@ -144,7 +157,15 @@ server.post("/chatnotification", (req, res) => {
     case "crd":
       {
         title = "Chat request declined";
-        body = `${req.body.from.name} declined your chat request!`;
+        body = `${req.body.from.name} is busy with another user. Try booking a session with other listeners.`;
+      }
+      break;
+
+    case "cend":
+    case "exp":
+      {
+        title = `Chat ended`;
+        body = `Your chat with ${req.body.from.name} has ended.`;
       }
       break;
 
@@ -155,10 +176,10 @@ server.post("/chatnotification", (req, res) => {
       }
       break;
   }
-  let logs = []
+  let logs = [];
 
-  if(typeof req.body.tokens == typeof "a") {
-    let token = req.body.tokens
+  if (typeof req.body.tokens == typeof "a") {
+    let token = req.body.tokens;
     const message = {
       notification: {
         title: title,
@@ -166,9 +187,8 @@ server.post("/chatnotification", (req, res) => {
         imageUrl: "https://my-cdn.com/app-logo.png",
       },
       token: `${token}`,
-      data : { screen : screen}
+      data: { screen: screen },
     };
-
 
     try {
       getMessaging()
@@ -182,58 +202,54 @@ server.post("/chatnotification", (req, res) => {
               }
             });
             console.log("List of tokens that caused failures: " + failedTokens);
-            logs.push(`[SUCCESS] :  (${token})`)
-
+            logs.push(`[SUCCESS] :  (${token})`);
           }
         })
         .catch((e) => {
-          console.log(e)
-         logs.push(`[ERROR] : ${e.message}  (${token})`)
+          console.log(e);
+          logs.push(`[ERROR] : ${e.message}  (${token})`);
         });
     } catch (e) {
-      logs.push(`[ERROR] : ${e.message}  (${token})`)
+      logs.push(`[ERROR] : ${e.message}  (${token})`);
     }
+  } else {
+    req.body.tokens.forEach((token) => {
+      const message = {
+        notification: {
+          title: title,
+          body: body,
+          imageUrl: "https://my-cdn.com/app-logo.png",
+        },
+        token: `${token}`,
+        data: { screen: screen },
+      };
 
-
+      try {
+        getMessaging()
+          .send(message)
+          .then((response) => {
+            if (response.failureCount > 0) {
+              const failedTokens = [];
+              response.responses.forEach((resp, idx) => {
+                if (!resp.success) {
+                  failedTokens.push(registrationTokens[idx]);
+                }
+              });
+              console.log(
+                "List of tokens that caused failures: " + failedTokens
+              );
+              logs.push(`[SUCCESS] :  (${token})`);
+            }
+          })
+          .catch((e) => {
+            console.log(e);
+            logs.push(`[ERROR] : ${e.message}  (${token})`);
+          });
+      } catch (e) {
+        logs.push(`[ERROR] : ${e.message}  (${token})`);
+      }
+    });
   }
-  else {
-  req.body.tokens.forEach((token) => {
-    const message = {
-      notification: {
-        title: title,
-        body: body,
-        imageUrl: "https://my-cdn.com/app-logo.png",
-      },
-      token: `${token}`,
-      data : { screen : screen}
-    };
-
-
-    try {
-      getMessaging()
-        .send(message)
-        .then((response) => {
-          if (response.failureCount > 0) {
-            const failedTokens = [];
-            response.responses.forEach((resp, idx) => {
-              if (!resp.success) {
-                failedTokens.push(registrationTokens[idx]);
-              }
-            });
-            console.log("List of tokens that caused failures: " + failedTokens);
-            logs.push(`[SUCCESS] :  (${token})`)
-
-          }
-        })
-        .catch((e) => {
-          console.log(e)
-         logs.push(`[ERROR] : ${e.message}  (${token})`)
-        });
-    } catch (e) {
-      logs.push(`[ERROR] : ${e.message}  (${token})`)
-    }
-  });
-}
 
   res.send(logs.join("\n"));
 });
@@ -279,8 +295,7 @@ function crashLog(e) {
 }
 
 let port = 7070;
-server.listen(port,(err) => {
-  if(err) throw new Error(err)
-    console.log("Listening on 7070");
-
+server.listen(port, (err) => {
+  if (err) throw new Error(err);
+  console.log("Listening on 7070");
 });
