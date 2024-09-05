@@ -178,6 +178,8 @@ server.post("/chatnotification", (req, res) => {
   }
   let logs = [];
 
+  
+
   if (typeof req.body.tokens == typeof "a") {
     let token = req.body.tokens;
     const message = {
@@ -203,17 +205,29 @@ server.post("/chatnotification", (req, res) => {
             });
             console.log("List of tokens that caused failures: " + failedTokens);
             logs.push(`[SUCCESS] :  (${token})`);
+            console.log(`${logs} \n 1`)
+         res.send(logs.join("\n"));
+
           }
         })
         .catch((e) => {
           console.log(e);
           logs.push(`[ERROR] : ${e.message}  (${token})`);
+          console.log(`${logs} \n 2`)
+
+          res.send(logs.join("\n"));
+
         });
     } catch (e) {
       logs.push(`[ERROR] : ${e.message}  (${token})`);
+      console.log(`${logs} \n 3`)
+
+      res.send(logs.join("\n"));
+
+
     }
   } else {
-    req.body.tokens.forEach((token) => {
+    req.body.tokens.forEach((token,i) => {
       const message = {
         notification: {
           title: title,
@@ -238,20 +252,24 @@ server.post("/chatnotification", (req, res) => {
               console.log(
                 "List of tokens that caused failures: " + failedTokens
               );
-              logs.push(`[SUCCESS] :  (${token})`);
             }
+            logs.push(`[SUCCESS] :  (${token})`);
+            if(i == req.body.tokens.length - 1) res.send(logs.join("\n"));
           })
           .catch((e) => {
             console.log(e);
             logs.push(`[ERROR] : ${e.message}  (${token})`);
+
+            if(i == req.body.tokens.length - 1)   res.send(logs.join("\n"));
           });
       } catch (e) {
         logs.push(`[ERROR] : ${e.message}  (${token})`);
+
+        if(i == req.body.tokens.length - 1)   res.send(logs.join("\n"));
       }
     });
   }
 
-  res.send(logs.join("\n"));
 });
 
 //process.on("uncaughtException", crashLog);
