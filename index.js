@@ -18,6 +18,12 @@ var cors = require("cors");
 const screenName = require("./screens");
 const Config = require("./config");
 
+
+
+const axios = require('axios');
+const bodyParser = require('body-parser');
+const querystring = require('querystring');
+
 var exec = require("child_process").exec;
 
 server.use(cors());
@@ -311,6 +317,56 @@ function crashLog(e) {
     console.log(e);
   }
 }
+
+
+
+
+
+
+// Parse URL-encoded bodies
+server.use(bodyParser.urlencoded({ extended: true }));
+
+server.post('/submitpartnerdetails', async (req, res) => {
+    try {
+        // Extract the 'entries' parameter (URL-encoded JSON string)
+        const { entries, entry_id, form_id, version, file_uploads, referrer_url } = req.body;
+
+        // Parse the 'entries' JSON string from URL-encoded format
+        const parsedEntries = JSON.parse(entries);
+
+        // Prepare the data to send to the Frappe API
+        const data = {
+            entries: JSON.stringify({
+                'mf-email': parsedEntries['mf-email'],
+                'mf-phone': parsedEntries['mf-phone'],
+                'mf-first-name': parsedEntries['mf-first-name'],
+                'mf-last-name': parsedEntries['mf-last-name'],
+                'mf-gender': parsedEntries['mf-gender'],
+                'mf-date-of-birth': parsedEntries['mf-date-of-birth'],
+                'mf-state': parsedEntries['mf-state'],
+                'referral': parsedEntries['referral'] || ''
+            })
+        };
+
+        // Send a POST request to the Frappe API
+        const response = await axios.post('https://academy.sayhey.co.in/api/method/api.api.submit_partner_details', querystring.stringify(data), {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+
+        // Send Frappe's response back to the client
+        res.status(response.status).json(response.data);
+
+    } catch (error) {
+        console.error('Error sending data to Frappe API:', error);
+        res.status(500).json({
+            status: 'fail',
+            message: 'Error processing the request'
+        });
+    }
+});
+
 
 let port = 7070;
 server.listen(port, (err) => {
