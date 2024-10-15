@@ -334,26 +334,21 @@ server.post('/submitpartnerdetails', async (req, res) => {
         // Parse the 'entries' JSON string from URL-encoded format
         const parsedEntries = JSON.parse(entries);
 
-        // Prepare the data to send to the Frappe API
         const data = {
-            entries: JSON.stringify({
-                'mf-email': parsedEntries['mf-email'],
-                'mf-phone': parsedEntries['mf-phone'],
-                'mf-first-name': parsedEntries['mf-first-name'],
-                'mf-last-name': parsedEntries['mf-last-name'],
-                'mf-gender': parsedEntries['mf-gender'],
-                'mf-date-of-birth': parsedEntries['mf-date-of-birth'],
-                'mf-state': parsedEntries['mf-state'],
-                'referral': parsedEntries['referral'] || ''
-            })
-        };
+          entries: entries,            // Send entries as it is
+          entry_id: entry_id,          // Forward additional parameters
+          form_id: form_id,
+          version: version,
+          file_uploads: file_uploads,
+          referrer_url: referrer_url
+      };
 
-        // Send a POST request to the Frappe API
-        const response = await axios.post('https://academy.sayhey.co.in/api/method/api.api.submit_partner_details', querystring.stringify(data), {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        });
+      // Send a POST request to the Frappe API
+      const response = await axios.post('http://your-frappe-api-endpoint/submit-partner-details', querystring.stringify(data), {
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+          }
+      });
 
         // Send Frappe's response back to the client
         res.status(response.status).json(response.data);
