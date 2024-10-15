@@ -345,7 +345,7 @@ server.post('/submitpartnerdetails', async (req, res) => {
       console.log(data)
 
       // Send a POST request to the Frappe API
-      const response = await axios.post('localhost:8000/api/method/api.api.submit_partner_details', querystring.stringify(data), {
+      const response = await axios.post('http://localhost:8000/api/method/api.api.submit_partner_details', querystring.stringify(data), {
           headers: {
               'Content-Type': 'application/x-www-form-urlencoded'
           }
